@@ -24,7 +24,12 @@ const app = express()
 
 const corsOptions = {
   credentials: true,
-  origin: ['http://localhost:3000', 'http://localhost:3332'],
+  origin: [
+    'http://teod.netlify.app/',
+    'https://teod.netlify.app/',
+    'http://localhost:3332',
+    'http://146.59.32.193:3003',
+  ],
   optionsSuccessStatus: 200, // For legacy browser support
 }
 
