@@ -6,6 +6,7 @@ const playerSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      min: 3,
     },
     email: {
       type: String,

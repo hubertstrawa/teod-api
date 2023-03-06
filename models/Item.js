@@ -14,6 +14,7 @@ const itemSchema = new mongoose.Schema({
   },
   attack: { type: Number },
   defense: { type: Number },
+  type: { type: String },
 })
 
 module.exports = mongoose.model('Item', itemSchema)
