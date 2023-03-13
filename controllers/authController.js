@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const Item = require('../models/Item')
 const Player = require('../models/Player')
+const Questlog = require('../models/Questlog')
 
 const signup = async (req, res) => {
   try {
@@ -30,6 +31,8 @@ const signup = async (req, res) => {
     }
 
     const player = await Player.create(playerObject)
+    await Questlog.create({ playerId: player._id })
+
     player.password = undefined
 
     return res.status(200).json({
@@ -94,7 +97,7 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
     })
 
-    res.json({ accessToken })
+    res.json({ accessToken, isNewPlayer: newUser.tutorial === 0 })
   } catch (err) {
     console.log('err', err)
     return res.json({
@@ -121,7 +124,7 @@ const refresh = async (req, res) => {
       process.env.REFRESH_TOKEN_SECRET,
       async (err, decoded) => {
         if (err)
-          return res.status(403).json({ message: 'Forbidden (refresh token)' })
+          return res.status(401).json({ message: 'Forbidden (refresh token)' })
 
         // sql = `SELECT * FROM players WHERE email=?`
 

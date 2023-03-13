@@ -5,6 +5,8 @@ const updateMe = async (req, res) => {
   try {
     const email = req.email
 
+    const { experienceGained } = req.body
+
     await Player.updateOne({ email }, { ...req.body })
 
     return res.status(200).json({ data: 'User updated' })
@@ -33,7 +35,17 @@ const getMe = async (req, res) => {
   }
 }
 
+const getPlayersHighscores = async (req, res) => {
+  try {
+    const players = await Player.find().sort({ level: -1 }).limit(10)
+    return res.status(200).json({ data: players })
+  } catch (err) {
+    return res.status(400).json({ message: 'Nie udało się danych' })
+  }
+}
+
 module.exports = {
   getMe,
+  getPlayersHighscores,
   updateMe,
 }

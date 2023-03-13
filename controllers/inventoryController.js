@@ -98,7 +98,32 @@ const addToInventory = async (req, res) => {
 
     return res.status(200).json({ data: item })
   } catch (err) {
-    return res.status(400).json({ message: 'Nieeee udalo sie zaktualizowac' })
+    return res.status(400).json({ message: 'Nie udalo sie zaktualizowac' })
+  }
+}
+
+const buyItem = async (req, res) => {
+  try {
+    const { itemId } = req.body
+
+    const player = await Player.findOne({ _id: req.id })
+    const item = await Item.findOne({ _id: itemId })
+    console.log('BUY ITEM', player.playerName)
+    console.log('BUY ITEM ITEM', item)
+
+    if (player.money < item.value) {
+      return res
+        .status(400)
+        .json({ message: 'Nie masz wystarczająco pieniędzy' })
+    }
+
+    player.inventory.all.push(itemId)
+    player.money = player.money - item.value
+    await player.save()
+
+    return res.status(200).json({ data: item })
+  } catch (err) {
+    return res.status(400).json({ message: 'Nie udało się kupić przedmiotu' })
   }
 }
 
@@ -106,4 +131,5 @@ module.exports = {
   getInventory,
   addToInventory,
   updateInventory,
+  buyItem,
 }

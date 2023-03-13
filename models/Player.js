@@ -54,6 +54,19 @@ const playerSchema = new mongoose.Schema(
       type: Number,
       default: 100,
     },
+    race: {
+      type: String,
+      enum: ['human', 'elf', 'orc'],
+      default: 'human',
+    },
+    avatar: {
+      type: String,
+      default: '/avatars/human-m.png',
+    },
+    tutorial: {
+      type: Number,
+      default: 1,
+    },
     inventory: {
       eq: {
         amulet: {
@@ -104,7 +117,10 @@ const playerSchema = new mongoose.Schema(
       },
       all: {
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
-        default: [{ _id: '63e57825740c52afc3339dbf' }],
+        default: [
+          { _id: '63e57825740c52afc3339dbf' },
+          { _id: '640e04be6a185fc05a969e2a' },
+        ],
       },
     },
   },

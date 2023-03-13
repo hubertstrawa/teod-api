@@ -9,7 +9,8 @@ const connectDB = require('./config/dbConnect')
 const authRoutes = require('./routes/authRoutes')
 const playerRoutes = require('./routes/playerRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
-
+const questLogRoutes = require('./routes/questlogRoutes')
+const { Server } = require('socket.io')
 const app = express()
 
 const corsOptions = {
@@ -32,6 +33,13 @@ connectDB()
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/player', playerRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
+app.use('/api/v1/questlog', questLogRoutes)
+
+const io = new Server(3004, {
+  cors: {
+    origin: ['http://localhost:3332'],
+  },
+})
 
 app.get('*', function (req, res) {
   console.log('HIT 404')

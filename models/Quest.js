@@ -7,13 +7,26 @@ const questSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  image: { type: String },
-  state: {
-    type: String,
-    default: 'common',
+  minLevel: {
+    type: Number,
+    default: null,
   },
-  attack: { type: Number },
-  defense: { type: Number },
+  requiredItems: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
+    default: [],
+  },
+  rewardItems: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
+    default: [],
+  },
+  rewardExp: {
+    type: Number,
+    default: 0,
+  },
+  rewardMoney: {
+    type: Number,
+    default: 0,
+  },
 })
 
 module.exports = mongoose.model('Quest', questSchema)
