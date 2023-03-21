@@ -10,6 +10,9 @@ const authRoutes = require('./routes/authRoutes')
 const playerRoutes = require('./routes/playerRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
 const questLogRoutes = require('./routes/questlogRoutes')
+const battlelogRoutes = require('./routes/battlelogRoutes')
+const enemyRoutes = require('./routes/enemyRoutes')
+
 const { Server } = require('socket.io')
 const app = express()
 
@@ -26,7 +29,7 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(mongoSanitize())
 app.use(cookieParser())
-app.use(bodyParser.json())
+app.use(express.json())
 
 connectDB()
 
@@ -34,6 +37,8 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/player', playerRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
 app.use('/api/v1/questlog', questLogRoutes)
+app.use('/api/v1/battlelog', battlelogRoutes)
+app.use('/api/v1/enemy', enemyRoutes)
 
 const io = new Server(3004, {
   cors: {

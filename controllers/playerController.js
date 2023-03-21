@@ -44,8 +44,84 @@ const getPlayersHighscores = async (req, res) => {
   }
 }
 
+const addAttribute = async (req, res) => {
+  try {
+    const email = req.email
+
+    const { attributeName } = req.body
+
+    const player = await Player.findOne({ email })
+
+    console.log('req body', req.body)
+
+    if (
+      attributeName !== 'strength' &&
+      attributeName !== 'intelligence' &&
+      attributeName !== 'vitality' &&
+      attributeName !== 'accuracy' &&
+      attributeName !== 'agility'
+    ) {
+      return res.status(400).json({ message: 'Nie ma takiego atrybutu' })
+    }
+
+    if (attributeName === 'strength') {
+      const cost = Math.pow(player.attributes.strength, 2)
+      if (player.money < cost) {
+        return res.status(400).json({ message: 'Nie masz wystarczająco złota' })
+      }
+      player.attributes.strength = player.attributes.strength + 1
+      player.money = player.money - cost
+    }
+
+    if (attributeName === 'intelligence') {
+      const cost = Math.pow(player.attributes.intelligence, 2)
+      if (player.money < cost) {
+        return res.status(400).json({ message: 'Nie masz wystarczająco złota' })
+      }
+      player.attributes.intelligence = player.attributes.intelligence + 1
+      player.money = player.money - cost
+    }
+
+    if (attributeName === 'vitality') {
+      const cost = Math.pow(player.attributes.vitality, 2)
+      if (player.money < cost) {
+        return res.status(400).json({ message: 'Nie masz wystarczająco złota' })
+      }
+      player.attributes.vitality = player.attributes.vitality + 1
+      player.maxHealthPoints = player.maxHealthPoints + 2
+      player.money = player.money - cost
+    }
+
+    if (attributeName === 'accuracy') {
+      const cost = Math.pow(player.attributes.accuracy, 2)
+      if (player.money < cost) {
+        return res.status(400).json({ message: 'Nie masz wystarczająco złota' })
+      }
+      player.attributes.accuracy = player.attributes.accuracy + 1
+      player.money = player.money - cost
+    }
+
+    if (attributeName === 'agility') {
+      const cost = Math.pow(player.attributes.agility, 2)
+      if (player.money < cost) {
+        return res.status(400).json({ message: 'Nie masz wystarczająco złota' })
+      }
+      player.attributes.agility = player.attributes.agility + 1
+      player.money = player.money - cost
+    }
+
+    await player.save()
+
+    return res.status(200).json({ data: 'Zwiększono atrybut' })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ message: 'Nie udalo sie dodać atrybutu' })
+  }
+}
+
 module.exports = {
   getMe,
   getPlayersHighscores,
   updateMe,
+  addAttribute,
 }

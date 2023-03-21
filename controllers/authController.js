@@ -3,10 +3,11 @@ const jwt = require('jsonwebtoken')
 const Item = require('../models/Item')
 const Player = require('../models/Player')
 const Questlog = require('../models/Questlog')
+const Battlelog = require('../models/Battlelog')
 
 const signup = async (req, res) => {
   try {
-    const { email, playerName, password } = req.body
+    const { email, playerName, password, race, avatar } = req.body
 
     if (!playerName || !password || !email) {
       return res.status(400).json({ message: 'Wypełnij wszystkie pola' })
@@ -27,11 +28,14 @@ const signup = async (req, res) => {
       playerName,
       password: hashedPassword,
       email,
+      race,
+      avatar,
       // inventory,
     }
 
     const player = await Player.create(playerObject)
     await Questlog.create({ playerId: player._id })
+    await Battlelog.create({ playerId: player._id })
 
     player.password = undefined
 

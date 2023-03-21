@@ -67,6 +67,32 @@ const playerSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    attributes: {
+      strength: {
+        type: Number,
+        default: 10,
+      },
+      intelligence: {
+        type: Number,
+        default: 10,
+      },
+      vitality: {
+        type: Number,
+        default: 10,
+      },
+      manaVitality: {
+        type: Number,
+        default: 10,
+      },
+      accuracy: {
+        type: Number,
+        default: 10,
+      },
+      agility: {
+        type: Number,
+        default: 10,
+      },
+    },
     inventory: {
       eq: {
         amulet: {
