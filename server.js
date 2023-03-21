@@ -13,7 +13,7 @@ const questLogRoutes = require('./routes/questlogRoutes')
 const battlelogRoutes = require('./routes/battlelogRoutes')
 const enemyRoutes = require('./routes/enemyRoutes')
 
-const { Server } = require('socket.io')
+// const { Server } = require('socket.io')
 const app = express()
 
 const corsOptions = {
@@ -40,11 +40,11 @@ app.use('/api/v1/questlog', questLogRoutes)
 app.use('/api/v1/battlelog', battlelogRoutes)
 app.use('/api/v1/enemy', enemyRoutes)
 
-const io = new Server(3004, {
-  cors: {
-    origin: ['http://localhost:3332'],
-  },
-})
+// const io = new Server(3004, {
+//   cors: {
+//     origin: ['http://localhost:3332'],
+//   },
+// })
 
 app.get('*', function (req, res) {
   console.log('HIT 404')
