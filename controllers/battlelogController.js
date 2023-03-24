@@ -139,7 +139,7 @@ const attackEnemy = async (req, res) => {
         eqPlayerAttack + playerLevel + playerAttributes.strength + 3
       )
 
-      if (!!calculateProbability(playerAttributes.playerCritical)) {
+      if (!!calculateProbability(playerAttributes.accuracy)) {
         playerCritical = true
         playerAttackValue = playerAttackValue * 10
       }
@@ -165,7 +165,7 @@ const attackEnemy = async (req, res) => {
       }
       playerAttackValue = getRandomIntMinMax(min, max)
 
-      if (!!calculateProbability(playerAttributes.playerCritical)) {
+      if (!!calculateProbability(playerAttributes.accuracy)) {
         playerCritical = true
         playerAttackValue = playerAttackValue * 10
       }
