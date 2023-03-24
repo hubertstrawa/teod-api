@@ -11,10 +11,26 @@ const playerRoutes = require('./routes/playerRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
 const questLogRoutes = require('./routes/questlogRoutes')
 const battlelogRoutes = require('./routes/battlelogRoutes')
+const http = require('http')
+const socketio = require('socket.io')
+
 const enemyRoutes = require('./routes/enemyRoutes')
+
+// db.items.insertOne({
+//   _id: ObjectId("641991d3498996fb93e194b7"),
+//   name: 'Przeklęte wiewiórki',
+//   description: 'Przynieś skradziony pojemnik na wodę.',
+//   requiredItems: '6419915d498996fb93e194b6',
+//   rewardMoney: 500
+// })
 
 // const { Server } = require('socket.io')
 const app = express()
+const server = http.createServer(app)
+
+// const socketio = require('socket.io')
+// const server = http.createServer(app)
+// const io = socketio(server)
 
 const corsOptions = {
   credentials: true,
@@ -46,12 +62,40 @@ app.use('/api/v1/enemy', enemyRoutes)
 //   },
 // })
 
-app.get('*', function (req, res) {
-  console.log('HIT 404')
-  res.status(404).json({ message: '404' })
+// app.get('*', function (req, res) {
+//   console.log('HIT 404')
+//   res.status(404).json({ message: '404' })
+// })
+const io = socketio(server, {
+  cors: {
+    origin: ['http://localhost:3332', 'https://teod.pl'],
+  },
 })
 
-const port = 3003
-app.listen(port, () => {
-  console.log('server is running')
+io.on('connection', (socket) => {
+  console.log('New user connected')
+
+  // Handle incoming events
+  socket.on('message', (data) => {
+    console.log('Received message:', data)
+
+    console.log('io.engine.clientsCount', io.engine.clientsCount)
+
+    // Broadcast the message to all connected clients
+    io.emit('response', data)
+  })
 })
+
+server.listen(3003, () => {
+  console.log('Server is listening on port 3003')
+})
+// const port = 3003
+// app.listen(port, () => {
+//   console.log('server is running')
+// })
+
+// const io = require('socket.io')(3003, {
+//   cors: {
+//     origin: ['http://localhost:3332'],
+//   },
+// })
