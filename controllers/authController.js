@@ -81,6 +81,7 @@ const login = async (req, res) => {
         UserInfo: {
           email: newUser.email,
           id: newUser._id,
+          playerName: newUser.playerName,
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -149,6 +150,7 @@ const refresh = async (req, res) => {
             UserInfo: {
               email: foundUser.email,
               id: foundUser._id,
+              playerName: foundUser.playerName,
             },
           },
           process.env.ACCESS_TOKEN_SECRET,

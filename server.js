@@ -6,6 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const connectDB = require('./config/dbConnect')
+const jwt = require('jsonwebtoken')
 const authRoutes = require('./routes/authRoutes')
 const playerRoutes = require('./routes/playerRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
@@ -72,17 +73,63 @@ const io = socketio(server, {
   },
 })
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token
+  // verify the JWT and extract user information
+  // ...
+  console.log('token', token)
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) return console.log('WRONG DECODED SOCKET JWT!', err)
+    console.log('DECODED', decoded)
+    socket.player = {
+      email: decoded.UserInfo.email,
+      id: decoded.UserInfo.id,
+      playerName: decoded.UserInfo.playerName,
+    }
+    next()
+  })
+
+  //  // store user info in socket object
+  // next()
+})
+
 io.on('connection', (socket) => {
   console.log('New user connected')
+
+  io.emit('joined_game', `${socket.player.playerName} dołączył/a do gry`)
+
+  // const connectedSockets = Object.keys(io.sockets.sockets).map((socketId) => {
+  //   return io.sockets.sockets[socketId]
+  // })
+
+  // console.log('connectedSockets', connectedSockets)
+
+  // console.log('onlinee', )
+  // io.sockets.sockets.forEach((el) =>
+  //   console.log('XXXXXXXXXXX EL', el.handshake)
+  // )
+
+  Object.keys(io.sockets.sockets).forEach((socketId) => {
+    const socket = io.sockets.sockets[socketId]
+    console.log('socket', socket)
+  })
+
+  io.emit('online_players', io.engine.clientsCount)
 
   // Handle incoming events
   socket.on('message', (data) => {
     console.log('Received message:', data)
 
-    console.log('io.engine.clientsCount', io.engine.clientsCount)
-
     // Broadcast the message to all connected clients
     io.emit('response', data)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected')
+
+    // Emit updated online players count
+    io.emit('online_players', io.engine.clientsCount)
+    io.emit('joined_game', `${socket.player.playerName} opuścił/a z gry`)
   })
 })
 

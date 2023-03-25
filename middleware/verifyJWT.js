@@ -13,6 +13,7 @@ const verifyJWT = (req, res, next) => {
     if (err) return res.status(401).json({ message: 'Forbidden' })
     req.email = decoded.UserInfo.email
     req.id = decoded.UserInfo.id
+    req.playerName = decoded.UserInfo.playerName
     next()
   })
 }
