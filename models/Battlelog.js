@@ -14,7 +14,10 @@ const battlelog = new mongoose.Schema({
   //   enemyAttack: { type: Number },
   //   isNew: { type: Boolean },
   // },
-  killedMonsters: [],
+  killedMonsters: {},
+  availableBoss: {
+    type: Number,
+  },
 })
 
 module.exports = mongoose.model('Battlelog', battlelog)

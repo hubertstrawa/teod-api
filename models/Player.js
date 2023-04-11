@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const spellSchema = require('./Spell')
+const jobSchema = require('./Job')
 
 const playerSchema = new mongoose.Schema(
   {
@@ -67,30 +69,62 @@ const playerSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    spells: [spellSchema],
+    activeJob: {
+      type: jobSchema,
+    },
+    locations: {
+      type: [String],
+      default: ['forgotten-forest'],
+    },
     attributes: {
       strength: {
         type: Number,
         default: 10,
       },
+      eqStrength: {
+        type: Number,
+        default: 0,
+      },
       intelligence: {
         type: Number,
         default: 10,
+      },
+      eqIntelligence: {
+        type: Number,
+        default: 0,
       },
       vitality: {
         type: Number,
         default: 10,
       },
+      eqVitality: {
+        type: Number,
+        default: 0,
+      },
       manaVitality: {
         type: Number,
         default: 10,
+      },
+      eqManaVitality: {
+        type: Number,
+        default: 0,
       },
       accuracy: {
         type: Number,
         default: 10,
       },
+      eqAccuracy: {
+        type: Number,
+        default: 0,
+      },
       agility: {
         type: Number,
         default: 10,
+      },
+      eqAgility: {
+        type: Number,
+        default: 0,
       },
     },
     inventory: {

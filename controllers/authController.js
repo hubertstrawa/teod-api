@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const Item = require('../models/Item')
 const Player = require('../models/Player')
 const Questlog = require('../models/Questlog')
+const Tasklog = require('../models/Tasklog')
 const Battlelog = require('../models/Battlelog')
 
 const signup = async (req, res) => {
@@ -30,12 +31,22 @@ const signup = async (req, res) => {
       email,
       race,
       avatar,
-      // inventory,
+      spells: [
+        {
+          name: 'Ogniste uderzenie',
+          spellType: 'fire',
+          spellLevel: 1,
+          power: 25,
+          manaCost: 10,
+          minIntelligence: 10,
+        },
+      ],
     }
 
     const player = await Player.create(playerObject)
     await Questlog.create({ playerId: player._id })
     await Battlelog.create({ playerId: player._id })
+    await Tasklog.create({ playerId: player._id })
 
     player.password = undefined
 

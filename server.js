@@ -11,6 +11,7 @@ const authRoutes = require('./routes/authRoutes')
 const playerRoutes = require('./routes/playerRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
 const questLogRoutes = require('./routes/questlogRoutes')
+const tasklogRoutes = require('./routes/tasklogRoutes')
 const battlelogRoutes = require('./routes/battlelogRoutes')
 const http = require('http')
 const socketio = require('socket.io')
@@ -54,6 +55,7 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/player', playerRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
 app.use('/api/v1/questlog', questLogRoutes)
+app.use('/api/v1/tasklog', tasklogRoutes)
 app.use('/api/v1/battlelog', battlelogRoutes)
 app.use('/api/v1/enemy', enemyRoutes)
 
@@ -79,7 +81,11 @@ io.use((socket, next) => {
   // ...
   console.log('token', token)
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) return console.log('WRONG DECODED SOCKET JWT!', err)
+    if (err) {
+      console.log('WRONG DECODED SOCKET JWT!', err)
+      io.emit('error', 'errortest')
+      return
+    }
     console.log('DECODED', decoded)
     socket.player = {
       email: decoded.UserInfo.email,
@@ -93,21 +99,19 @@ io.use((socket, next) => {
   // next()
 })
 
+const veriyTokenJWT = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    return { isValid: true, decoded }
+  } catch (err) {
+    return { isValid: false, error: err }
+  }
+}
+
 io.on('connection', (socket) => {
   console.log('New user connected')
 
   io.emit('joined_game', `${socket.player.playerName} dołączył/a do gry`)
-
-  // const connectedSockets = Object.keys(io.sockets.sockets).map((socketId) => {
-  //   return io.sockets.sockets[socketId]
-  // })
-
-  // console.log('connectedSockets', connectedSockets)
-
-  // console.log('onlinee', )
-  // io.sockets.sockets.forEach((el) =>
-  //   console.log('XXXXXXXXXXX EL', el.handshake)
-  // )
 
   Object.keys(io.sockets.sockets).forEach((socketId) => {
     const socket = io.sockets.sockets[socketId]
