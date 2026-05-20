@@ -1,18 +1,12 @@
 import startServer from './bootstrap/startServer.js'
 
-let app
-let server
-let io
+let app, server, io
 
-startServer()
-  .then((instances) => {
-    app = instances.app
-    server = instances.server
-    io = instances.io
-  })
-  .catch((error) => {
-    console.error('Failed to start server:', error)
-    process.exit(1)
-  })
+try {
+  ({ app, server, io } = await startServer())
+} catch (error) {
+  console.error('Failed to start server:', error)
+  process.exit(1)
+}
 
 export { app, server, io }
