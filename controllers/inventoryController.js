@@ -268,7 +268,8 @@ const addToInventory = asyncHandler(async (req, res) => {
 
 const getItemSell = asyncHandler(async (req, res) => {
   const itemsToSellIds = itemsToSell.map((item) => item._id)
-  const items = await Item.find({ _id: { $in: itemsToSellIds } })
+  // const items = await Item.find({ _id: { $in: itemsToSellIds } })
+  const items = await Item.find()
   return res.status(200).json({ data: items })
 })
 

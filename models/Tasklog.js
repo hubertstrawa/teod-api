@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import activeTaskSchema from './schemas/ActiveTask.js'
 
 const tasklogSchema = new mongoose.Schema({
   playerId: {
@@ -7,7 +8,10 @@ const tasklogSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  activeTask: {},
+  activeTask: {
+    type: activeTaskSchema,
+    default: null,
+  },
   taskPoints: {
     type: Number,
     default: 0,

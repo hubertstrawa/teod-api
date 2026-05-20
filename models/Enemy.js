@@ -21,7 +21,7 @@ const enemySchema = new mongoose.Schema({
   experience: { type: Number },
   maxMoney: { type: Number },
   loot: {
-    type: [{ chance: Number, id: String }],
+    type: [{ chance: Number, itemId: String }],
   },
   location: { type: String },
 })
