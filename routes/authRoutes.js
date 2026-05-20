@@ -5,7 +5,7 @@ import {
   login,
   refresh,
   logout,
-} from '../controllers/authController.js'
+} from '../src/modules/auth/auth.controller.js'
 import validate from '../src/shared/http/validate.js'
 import authSchemas from '../src/modules/auth/auth.schemas.js'
 
