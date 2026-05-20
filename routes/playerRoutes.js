@@ -11,7 +11,7 @@ import {
   inviteToFriends,
   acceptFriendsInvitation,
   getSinglePlayer,
-} from '../controllers/playerController.js'
+} from '../src/modules/player/player.controller.js'
 import verifyJWT from '../middleware/verifyJWT.js'
 import validate from '../src/shared/http/validate.js'
 import playerSchemas from '../src/modules/player/player.schemas.js'
