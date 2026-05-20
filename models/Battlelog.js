@@ -9,40 +9,11 @@ const battlelog = new mongoose.Schema({
   },
   enemy: {},
   current: {},
-  // current: {
-  //   playerAttack: { type: Number },
-  //   enemyAttack: { type: Number },
-  //   isNew: { type: Boolean },
-  // },
-  // killedMonsters: {},
-  // availableBoss: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'Enemy',
-  // },
-  // pvp: {
-  //   pvpInvitedPlayer: {
-  //     type: String,
-  //   },
-  //   pvpEnemyPlayerName: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'Player',
-  //   },
-  //   pvpEnemyData: { type: Object, default: {} },
-  //   current: { type: Object, default: {} },
-  //   turn: { type: Number, default: 0 },
-  //   responded: { type: Boolean, default: false },
-  //   turnPlayer: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'Player',
-  //   },
-  //   attacks: {
-  //     type: Object,
-  //     default: {
-  //       spellType: String,
-  //       attackValue: Number,
-  //     },
-  //   },
-  // },
+  killedMonsters: {},
+  availableBoss: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enemy',
+  },
 })
 
 const Battlelog = mongoose.model('Battlelog', battlelog)
