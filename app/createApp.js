@@ -9,6 +9,7 @@ import questLogRoutes from '../routes/questlogRoutes.js'
 import tasklogRoutes from '../routes/tasklogRoutes.js'
 import battlelogRoutes from '../routes/battlelogRoutes.js'
 import enemyRoutes from '../routes/enemyRoutes.js'
+import errorHandler from '../src/shared/http/errorHandler.js'
 
 const corsOptions = {
   credentials: true,
@@ -36,6 +37,8 @@ const createApp = () => {
   app.use('/api/v1/tasklog', tasklogRoutes)
   app.use('/api/v1/battlelog', battlelogRoutes)
   app.use('/api/v1/enemy', enemyRoutes)
+
+  app.use(errorHandler)
 
   return app
 }
