@@ -21,16 +21,17 @@ const startTask = asyncHandler(async (req, res) => {
   const { taskId } = req.body
   const playerId = req.id
 
-  const task = await Task.findOne({ _id: taskId })
-  const player = await Player.findOne({ _id: playerId })
-  const tasklog = await Tasklog.findOne({ playerId })
-  const battlelog = await Battlelog.findOne({ playerId })
+  const [task, player, tasklog, battlelog] = await Promise.all([
+    Task.findOne({ _id: taskId }),
+    Player.findOne({ _id: playerId }),
+    Tasklog.findOne({ playerId }),
+    Battlelog.findOne({ playerId })
+  ])
 
   if (!task || !player || !tasklog || !battlelog) {
     throw ApiError.badRequest('Nie udalo sie rozpoczac taska')
   }
 
-  tasklog.markModified('activeTask')
 
   if (player.level < task.minLevel) {
     throw ApiError.badRequest('Masz zbyt mały level')
@@ -38,7 +39,7 @@ const startTask = asyncHandler(async (req, res) => {
 
   tasklog.activeTask = {
     countStart: battlelog?.killedMonsters?.[task.enemyId] || 0,
-    countEnd: battlelog?.killedMonsters?.[task.enemyId] + 100 || 100,
+    countEnd: (battlelog?.killedMonsters?.[task.enemyId] || 0) + 100,
     idTask: task._id,
     name: task.name,
     bossId: task.bossId,
@@ -46,6 +47,7 @@ const startTask = asyncHandler(async (req, res) => {
     taskPointsAdd: task.taskPointsAdd,
   }
 
+  tasklog.markModified('activeTask')
   await tasklog.save()
   return res
     .status(200)

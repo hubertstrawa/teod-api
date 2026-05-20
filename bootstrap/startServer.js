@@ -14,6 +14,7 @@ const startServer = async (port = DEFAULT_PORT) => {
   const app = createApp()
   const server = http.createServer(app)
   const io = createSocketServer(server)
+  app.set('io', io)
 
   await new Promise((resolve, reject) => {
     server.listen(port, resolve)

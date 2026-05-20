@@ -2,7 +2,6 @@ import Item from '../models/Item.js'
 import Player from '../models/Player.js'
 import getLootFromEnemy from '../utils/getLootFromEnemy.js'
 import mongoose from 'mongoose'
-import { io } from '../server.js'
 import ApiError from '../src/shared/errors/ApiError.js'
 import asyncHandler from '../src/shared/http/asyncHandler.js'
 
@@ -81,16 +80,6 @@ const addAttribute = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Nie udalo sie dodać atrybutu')
   }
 
-  if (
-    attributeName !== 'strength' &&
-    attributeName !== 'intelligence' &&
-    attributeName !== 'vitality' &&
-    attributeName !== 'accuracy' &&
-    attributeName !== 'agility'
-  ) {
-    throw ApiError.badRequest('Nie ma takiego atrybutu')
-  }
-
   if (attributeName === 'strength') {
     const cost = Math.pow(player.attributes.strength, 2)
     if (player.money < cost) {
@@ -163,8 +152,6 @@ const startJob = asyncHandler(async (req, res) => {
         { id: '642353e6483b9202619f6095', chance: 20 },
       ],
     }
-  } else {
-    throw ApiError.badRequest('Nie ma takiej lokacji')
   }
 
   await player.save()
@@ -216,6 +203,10 @@ const closeJob = asyncHandler(async (req, res) => {
 export const getSocketIdForPlayer = (playerName, socketsMap) => {
   let foundSocketId
 
+  if (!socketsMap) {
+    return foundSocketId
+  }
+
   socketsMap.forEach((socket, socketId) => {
     if (playerName === socket.player.playerName) {
       foundSocketId = socketId
@@ -262,7 +253,8 @@ const inviteToFriends = asyncHandler(async (req, res) => {
   })
   await playerInvited.save()
 
-  const socketsMap = io.sockets.sockets
+  const io = req.app.get('io')
+  const socketsMap = io?.sockets?.sockets
   const playerSocketIdToEmit = getSocketIdForPlayer(playerName, socketsMap)
 
   if (playerSocketIdToEmit) {
@@ -310,7 +302,8 @@ const acceptFriendsInvitation = asyncHandler(async (req, res) => {
     player.notifications.splice(removePendingNotificationIndex, 1)
   }
 
-  const socketsMap = io.sockets.sockets
+  const io = req.app.get('io')
+  const socketsMap = io?.sockets?.sockets
   const playerSocketIdToEmit = getSocketIdForPlayer(player.playerName, socketsMap)
 
   if (playerSocketIdToEmit) {

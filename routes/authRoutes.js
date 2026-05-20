@@ -6,13 +6,15 @@ import {
   refresh,
   logout,
 } from '../controllers/authController.js'
+import validate from '../src/shared/http/validate.js'
+import authSchemas from '../src/modules/auth/auth.schemas.js'
 
 const router = express.Router()
 
-router.route('/signup').post(signup)
-router.route('/login').post(login)
-router.route('/refresh').get(refresh)
-router.route('/logout').post(logout)
+router.route('/signup').post(validate(authSchemas.signup), signup)
+router.route('/login').post(validate(authSchemas.login), login)
+router.route('/refresh').get(validate(authSchemas.refresh), refresh)
+router.route('/logout').post(validate(authSchemas.logout), logout)
 
 const authRoutes = router
 export default authRoutes

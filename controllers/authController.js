@@ -10,10 +10,6 @@ import asyncHandler from '../src/shared/http/asyncHandler.js'
 const signup = asyncHandler(async (req, res) => {
   const { email, playerName, password, race, avatar } = req.body
 
-  if (!playerName || !password || !email) {
-    throw ApiError.badRequest('Wypełnij wszystkie pola')
-  }
-
   const findPlayer = await Player.findOne({
     $or: [{ email }, { playerName }],
   })
@@ -71,9 +67,6 @@ const signup = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
-  if (!email || !password) {
-    throw ApiError.badRequest('Podaj email i hasło')
-  }
 
   const newUser = await Player.findOne({ email })
 
