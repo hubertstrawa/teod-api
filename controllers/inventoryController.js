@@ -1,6 +1,6 @@
-const Item = require('../models/Item')
-const Player = require('../models/Player')
-const itemsToSell = require('../utils/itemsToSell')
+import Item from '../models/Item.js'
+import Player from '../models/Player.js'
+import itemsToSell from '../utils/itemsToSell.js'
 
 const getInventory = async (req, res) => {
   try {
@@ -26,7 +26,6 @@ const updateInventory = async (req, res) => {
   try {
     const { item, itemToConsume, itemToRemove, allInventoryIds } = req.body
     const player = await Player.findOne({ _id: req.id })
-    console.log('playerINVENTORY', player.inventory)
 
     // // equip
     // if (item?._id) {
@@ -66,12 +65,6 @@ const equipItem = async (req, res) => {
 
     const item = await Item.findOne({ _id: itemToEquip._id })
 
-    // Object.keys(item.attribues)
-
-    console.log('item', item)
-    // console.log('itemToEquip', itemToEquip)
-    // console.log('player', player)
-
     if (itemToEquip.minLevel > player.level) {
       return res.status(400).json({
         message: 'Nie posiadasz wymaganego poziomu',
@@ -83,11 +76,8 @@ const equipItem = async (req, res) => {
         _id: player.inventory.eq[itemToEquip.type],
       })
 
-      console.log('itemCurrentlyEquipped', itemCurrentlyEquipped)
-
-      for (attr of Object.keys(itemCurrentlyEquipped.attributes)) {
+      for (let attr of Object.keys(itemCurrentlyEquipped.attributes)) {
         // vitality, 3
-        // console.log(attr, item.attributes[attr])
         if (itemCurrentlyEquipped.attributes[attr] > 0) {
           if (attr === 'vitality') {
             player.maxHealthPoints =
@@ -111,9 +101,7 @@ const equipItem = async (req, res) => {
       player.inventory.all.push(player.inventory.eq[itemToEquip.type]._id)
     }
 
-    for (attr of Object.keys(item.attributes)) {
-      // vitality, 3
-      // console.log(attr, item.attributes[attr])
+    for (let attr of Object.keys(item.attributes)) {
       if (item.attributes[attr] > 0) {
         player.attributes[`eq${attr.charAt(0).toUpperCase() + attr.slice(1)}`] =
           player.attributes[
@@ -139,20 +127,19 @@ const equipItem = async (req, res) => {
     await player.save()
     return res.status(200).json({ data: 'Zalozono przedmiot' })
   } catch (err) {
+    console.log('ERR', err)
     return res.status(400).json({ message: 'Nie udalo sie zalozyc' })
   }
 }
 
 const unequipItem = async (req, res) => {
   try {
-    console.log('req body', req.body)
     const { itemToUnequip } = req.body
     const player = await Player.findOne({ _id: req.id })
 
     const hasItemEquipped =
       player.inventory.eq[itemToUnequip.type]._id.toString() ===
       itemToUnequip._id
-    console.log('hasITMEQUp', hasItemEquipped)
 
     if (!hasItemEquipped) {
       return res.status(400).json({
@@ -162,9 +149,7 @@ const unequipItem = async (req, res) => {
 
     const item = await Item.findOne({ _id: itemToUnequip._id })
 
-    for (attr of Object.keys(item.attributes)) {
-      // vitality, 3
-      // console.log(attr, item.attributes[attr])
+    for (let attr of Object.keys(item.attributes)) {
       if (item.attributes[attr] > 0) {
         player.attributes[`eq${attr.charAt(0).toUpperCase() + attr.slice(1)}`] =
           player.attributes[
@@ -198,16 +183,8 @@ const eatFood = async (req, res) => {
     const { itemToConsume, index } = req.body
 
     const player = await Player.findOne({ _id: req.id })
-    // const itemFound = await Item.findOne({ _id: itemToConsume._id })
-
-    console.log('itemToConsume', itemToConsume)
-    console.log('index', index)
-    // console.log('itemFound', itemFound)
 
     const hasItem = player.inventory.all.includes(itemToConsume._id)
-
-    console.log('hasITEM', hasItem)
-    console.log('player.inventory.all', player.inventory.all)
 
     if (!itemToConsume || index === -1 || !hasItem) {
       return res
@@ -294,6 +271,13 @@ const eatFood = async (req, res) => {
           : (player.energy = player.energy + 50)
         break
       }
+      // LOKACJA krolewskie ruiny
+      case '64e158aca2080c12d0207df2': {
+        player.locations.includes('royal-ruins')
+          ? null
+          : player.locations.push('royal-ruins')
+        break
+      }
       default:
         return null
     }
@@ -325,7 +309,26 @@ const addToInventory = async (req, res) => {
 
 const getItemSell = async (req, res) => {
   try {
-    return res.status(200).json({ data: itemsToSell })
+    const itemsToSellIds = [
+      '63e57825740c52afc3339dbf',
+      '6435c9902b8966851df8ac8b',
+      '63e965bbecbb4c981ca98881',
+      '642f422f4664fe165010d503',
+      '643475253fcef17a9c96b8f2',
+      '64198dc4498996fb93e194b5',
+      '642203b00e34982b4d3292e4',
+      '642353e6483b9202619f6095',
+      '64329ab23fcef17a9c96b8e3',
+      '65a6f84145a019cf0e79575d',
+      '65a6fc1e45a019cf0e795760',
+      '65a7014045a019cf0e795762',
+      '65a6ffe345a019cf0e795761',
+      '65af7fb5453149cd37fe472b',
+    ]
+
+    const items = await Item.find({ _id: { $in: itemsToSellIds } })
+
+    return res.status(200).json({ data: items })
   } catch (err) {
     return res.status(400).json({ message: 'Nie udało się pobrać danych' })
   }
@@ -337,8 +340,6 @@ const buyItem = async (req, res) => {
 
     const player = await Player.findOne({ _id: req.id })
     const item = await Item.findOne({ _id: itemId })
-    console.log('BUY ITEM', player.playerName)
-    console.log('BUY ITEM ITEM', item)
 
     if (player.money < item.value) {
       return res
@@ -379,7 +380,7 @@ const sellItem = async (req, res) => {
   }
 }
 
-module.exports = {
+export {
   getInventory,
   addToInventory,
   updateInventory,

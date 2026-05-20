@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const tasklogSchema = new mongoose.Schema({
   playerId: {
@@ -14,4 +14,5 @@ const tasklogSchema = new mongoose.Schema({
   },
 })
 
-module.exports = mongoose.model('Tasklog', tasklogSchema)
+const Tasklog = mongoose.model('Tasklog', tasklogSchema)
+export default Tasklog

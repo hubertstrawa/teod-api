@@ -1,15 +1,33 @@
-const express = require('express')
+import express from 'express'
+import {
+  getMe,
+  getPlayersHighscores,
+  updateMe,
+  addAttribute,
+  startJob,
+  finishJob,
+  closeJob,
+  setNotificationRead,
+  inviteToFriends,
+  acceptFriendsInvitation,
+  getSinglePlayer,
+} from '../controllers/playerController.js'
+import verifyJWT from '../middleware/verifyJWT.js'
+
 const router = express.Router()
-const playerController = require('../controllers/playerController')
-const verifyJWT = require('../middleware/verifyJWT')
 
 router.use(verifyJWT)
-router.route('/me').get(playerController.getMe)
-router.route('/highscores').get(playerController.getPlayersHighscores)
-router.route('/updateMe').patch(playerController.updateMe)
-router.route('/addAttribute').post(playerController.addAttribute)
-router.route('/startJob').post(playerController.startJob)
-router.route('/finishJob').post(playerController.finishJob)
-router.route('/closeJob').delete(playerController.closeJob)
+router.route('/me').get(getMe)
+router.route('/highscores').get(getPlayersHighscores)
+router.route('/updateMe').patch(updateMe)
+router.route('/addAttribute').post(addAttribute)
+router.route('/startJob').post(startJob)
+router.route('/finishJob').post(finishJob)
+router.route('/closeJob').delete(closeJob)
+router.route('/setNotificationRead').post(setNotificationRead)
+router.route('/inviteToFriends').post(inviteToFriends)
+router.route('/acceptFriendsInvitation').post(acceptFriendsInvitation)
+router.route('/getSinglePlayer').get(getSinglePlayer)
 
-module.exports = router
+const playerRoutes = router
+export default playerRoutes

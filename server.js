@@ -1,39 +1,29 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
-const url = require('url')
-const mongoSanitize = require('express-mongo-sanitize')
-const bodyParser = require('body-parser')
-const cookieParser = require('cookie-parser')
-const connectDB = require('./config/dbConnect')
-const jwt = require('jsonwebtoken')
-const authRoutes = require('./routes/authRoutes')
-const playerRoutes = require('./routes/playerRoutes')
-const inventoryRoutes = require('./routes/inventoryRoutes')
-const questLogRoutes = require('./routes/questlogRoutes')
-const tasklogRoutes = require('./routes/tasklogRoutes')
-const battlelogRoutes = require('./routes/battlelogRoutes')
-const http = require('http')
-const socketio = require('socket.io')
+import dotenv from 'dotenv'
+import express from 'express'
+import cors from 'cors'
+import mongoSanitize from 'express-mongo-sanitize'
+import cookieParser from 'cookie-parser'
+import connectDB from './config/dbConnect.js'
+import jwt from 'jsonwebtoken'
+import authRoutes from './routes/authRoutes.js'
+import playerRoutes from './routes/playerRoutes.js'
+import inventoryRoutes from './routes/inventoryRoutes.js'
+import questLogRoutes from './routes/questlogRoutes.js'
+import tasklogRoutes from './routes/tasklogRoutes.js'
+import battlelogRoutes from './routes/battlelogRoutes.js'
+import enemyRoutes from './routes/enemyRoutes.js'
+import http from 'http'
+import { Server as SocketServer } from 'socket.io'
+import { getSocketIdForPlayer } from './controllers/playerController.js'
+import Battlelog from './models/Battlelog.js'
+import mongoose from 'mongoose'
 
-const enemyRoutes = require('./routes/enemyRoutes')
-
-// db.items.insertOne({
-//   _id: ObjectId("641991d3498996fb93e194b7"),
-//   name: 'Przeklęte wiewiórki',
-//   description: 'Przynieś skradziony pojemnik na wodę.',
-//   requiredItems: '6419915d498996fb93e194b6',
-//   rewardMoney: 500
-// })
-
-// const { Server } = require('socket.io')
+dotenv.config()
 const app = express()
 const server = http.createServer(app)
+connectDB()
 
-// const socketio = require('socket.io')
-// const server = http.createServer(app)
-// const io = socketio(server)
-
+//Middleware
 const corsOptions = {
   credentials: true,
   origin: [
@@ -41,16 +31,13 @@ const corsOptions = {
     'http://localhost:3332',
     'https://teod.pl',
   ],
-  optionsSuccessStatus: 200, // For legacy browser support
 }
-
 app.use(cors(corsOptions))
 app.use(mongoSanitize())
 app.use(cookieParser())
 app.use(express.json())
 
-connectDB()
-
+// Routes
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/player', playerRoutes)
 app.use('/api/v1/inventory', inventoryRoutes)
@@ -59,17 +46,7 @@ app.use('/api/v1/tasklog', tasklogRoutes)
 app.use('/api/v1/battlelog', battlelogRoutes)
 app.use('/api/v1/enemy', enemyRoutes)
 
-// const io = new Server(3004, {
-//   cors: {
-//     origin: ['http://localhost:3332'],
-//   },
-// })
-
-// app.get('*', function (req, res) {
-//   console.log('HIT 404')
-//   res.status(404).json({ message: '404' })
-// })
-const io = socketio(server, {
+const io = new SocketServer(server, {
   cors: {
     origin: ['http://localhost:3332', 'https://teod.pl'],
   },
@@ -77,16 +54,10 @@ const io = socketio(server, {
 
 io.use((socket, next) => {
   const token = socket.handshake.auth.token
-  // verify the JWT and extract user information
-  // ...
-  console.log('token', token)
+
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    if (err) {
-      console.log('WRONG DECODED SOCKET JWT!', err)
-      io.emit('error', 'errortest')
-      return
-    }
-    console.log('DECODED', decoded)
+    if (err) return next(new Error('Unauthorized [socket.io]'))
+
     socket.player = {
       email: decoded.UserInfo.email,
       id: decoded.UserInfo.id,
@@ -94,45 +65,44 @@ io.use((socket, next) => {
     }
     next()
   })
-
-  //  // store user info in socket object
-  // next()
 })
-
-const veriyTokenJWT = (token) => {
-  try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    return { isValid: true, decoded }
-  } catch (err) {
-    return { isValid: false, error: err }
-  }
-}
 
 io.on('connection', (socket) => {
   console.log('New user connected')
 
   io.emit('joined_game', `${socket.player.playerName} dołączył/a do gry`)
 
-  Object.keys(io.sockets.sockets).forEach((socketId) => {
-    const socket = io.sockets.sockets[socketId]
-    console.log('socket', socket)
-  })
+  const onlineSocketsData = Array.from(io.sockets.sockets.values()).map(
+    (socket) => ({
+      id: socket.id,
+      playerName: socket.player.playerName,
+    })
+  )
 
-  io.emit('online_players', io.engine.clientsCount)
+  io.emit('online_players', {
+    connectedSockets: onlineSocketsData,
+    onlineCount: io.sockets.sockets.size,
+  })
 
   // Handle incoming events
   socket.on('message', (data) => {
-    console.log('Received message:', data)
-
-    // Broadcast the message to all connected clients
     io.emit('response', data)
   })
 
   socket.on('disconnect', () => {
     console.log('User disconnected')
+    const onlineSocketsData = Array.from(io.sockets.sockets.values()).map(
+      (socket) => ({
+        id: socket.id,
+        playerName: socket.player.playerName,
+      })
+    )
 
     // Emit updated online players count
-    io.emit('online_players', io.engine.clientsCount)
+    io.emit('online_players', {
+      connectedSockets: onlineSocketsData,
+      onlineCount: io.sockets.sockets.size,
+    })
     io.emit('joined_game', `${socket.player.playerName} opuścił/a z gry`)
   })
 })
@@ -140,13 +110,5 @@ io.on('connection', (socket) => {
 server.listen(3003, () => {
   console.log('Server is listening on port 3003')
 })
-// const port = 3003
-// app.listen(port, () => {
-//   console.log('server is running')
-// })
 
-// const io = require('socket.io')(3003, {
-//   cors: {
-//     origin: ['http://localhost:3332'],
-//   },
-// })
+export { io }

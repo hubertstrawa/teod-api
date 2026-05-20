@@ -15,7 +15,8 @@ const getLootFromEnemy = (items) => {
   let pIndex = Math.floor(Math.random() * 100)
   let rarity = items[probability[pIndex]]
 
+  console.log('RARITY', rarity)
   return rarity
 }
 
-module.exports = getLootFromEnemy
+export default getLootFromEnemy

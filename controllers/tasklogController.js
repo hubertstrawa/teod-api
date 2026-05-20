@@ -1,17 +1,14 @@
-const Item = require('../models/Item')
-const Player = require('../models/Player')
-const Tasklog = require('../models/Tasklog')
-const Battlelog = require('../models/Battlelog')
-const Task = require('../models/Task')
-const enemyData = require('../utils/enemyData')
+import Tasklog from '../models/Tasklog.js'
+import Battlelog from '../models/Battlelog.js'
+import Task from '../models/Task.js'
+import Player from '../models/Player.js'
 
 const getTasks = async (req, res) => {
   try {
     const playerId = req.id
 
+    // Location currently hardcoded
     const tasks = await Task.find({ location: 'forgotten-forest' })
-
-    console.log('tasks', tasks)
 
     return res.status(200).json({ data: tasks })
   } catch (err) {
@@ -39,14 +36,18 @@ const startTask = async (req, res) => {
 
     const playerId = req.id
 
-    const tasklog = await Tasklog.findOne({ playerId })
-    console.log('taskID', taskId)
     const task = await Task.findOne({ _id: taskId })
-    console.log('task', task)
-    const battlelog = await Battlelog.findOne({ playerId })
+    const player = await Player.findOne({ _id: playerId })
+
+    const tasklog = await Tasklog.findOne({ playerId })
     tasklog.markModified('activeTask')
 
-    console.log('battlelog?.killedMonsters[task.enemyId]', task)
+    const battlelog = await Battlelog.findOne({ playerId })
+
+    if (player.level < task.minLevel) {
+      return res.status(400).json({ message: 'Masz zbyt mały level' })
+    }
+
     tasklog.activeTask = {
       countStart: battlelog?.killedMonsters?.[task.enemyId] || 0,
       countEnd: battlelog?.killedMonsters?.[task.enemyId] + 100 || 100,
@@ -56,11 +57,6 @@ const startTask = async (req, res) => {
       enemyId: task.enemyId,
       taskPointsAdd: task.taskPointsAdd,
     }
-
-    // console.log('tasklog', tasklog)
-    // console.log('tasklog bef', battlelog.killedMonsters)
-
-    // console.log('tasklog aft', battlelog.killedMonsters[task.enemyId])
 
     await tasklog.save()
     return res
@@ -139,12 +135,14 @@ const closeTask = async (req, res) => {
 //   }
 // }
 
-module.exports = {
-  getTasks,
-  getPlayerTasklog,
-  startTask,
-  finishTask,
-  closeTask,
-  // getPlayersHighscores,
-  // updateMe,
-}
+export { getTasks, getPlayerTasklog, startTask, finishTask, closeTask }
+
+// module.exports = {
+//   getTasks,
+//   getPlayerTasklog,
+//   startTask,
+//   finishTask,
+//   closeTask,
+//   // getPlayersHighscores,
+//   // updateMe,
+// }

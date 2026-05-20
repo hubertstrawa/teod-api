@@ -1,9 +1,12 @@
-const express = require('express')
+import express from 'express'
+import { getEnemies, getSingleEnemy } from '../controllers/enemyController.js'
+import verifyJWT from '../middleware/verifyJWT.js'
+
 const router = express.Router()
-const enemyController = require('../controllers/enemyController')
-const verifyJWT = require('../middleware/verifyJWT')
 
 router.use(verifyJWT)
-router.route('/getEnemies').get(enemyController.getEnemies)
+router.route('/getEnemies').get(getEnemies)
+router.route('/getSingleEnemy').get(getSingleEnemy)
 
-module.exports = router
+const enemyRoutes = router
+export default enemyRoutes

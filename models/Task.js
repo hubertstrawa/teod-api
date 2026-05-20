@@ -1,11 +1,12 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const taskSchema = new mongoose.Schema({
   name: {
     type: String,
   },
   enemyId: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enemy',
   },
   minLevel: {
     type: Number,
@@ -19,7 +20,8 @@ const taskSchema = new mongoose.Schema({
     type: Number,
   },
   bossId: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enemy',
   },
   taskPointsAdd: {
     type: Number,
@@ -30,4 +32,5 @@ const taskSchema = new mongoose.Schema({
   },
 })
 
-module.exports = mongoose.model('Task', taskSchema)
+const Task = mongoose.model('Task', taskSchema)
+export default Task

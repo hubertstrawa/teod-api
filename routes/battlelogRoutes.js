@@ -1,11 +1,20 @@
-const express = require('express')
+import express from 'express'
+import {
+  getBattlelog,
+  getFullBattlelog,
+  startBattle,
+  attackEnemy,
+  getEnemyPlayerData,
+} from '../controllers/battlelogController.js'
+import verifyJWT from '../middleware/verifyJWT.js'
 const router = express.Router()
-const battlelogController = require('../controllers/battlelogController')
-const verifyJWT = require('../middleware/verifyJWT')
 
 router.use(verifyJWT)
-router.route('/getBattlelog').get(battlelogController.getBattlelog)
-router.route('/startBattle').post(battlelogController.startBattle)
-router.route('/attackEnemy').post(battlelogController.attackEnemy)
+router.route('/getBattlelog').get(getBattlelog)
+router.route('/getFullBattlelog').get(getFullBattlelog)
+router.route('/startBattle').post(startBattle)
+router.route('/attackEnemy').post(attackEnemy)
+router.route('/getEnemyPlayerData').get(getEnemyPlayerData)
 
-module.exports = router
+const battlelogRoutes = router
+export default battlelogRoutes

@@ -1,11 +1,9 @@
-const Item = require('../models/Item')
-const Player = require('../models/Player')
-const Questlog = require('../models/Questlog')
-const Battlelog = require('../models/Battlelog')
-const Quest = require('../models/Quest')
-const getLootFromEnemy = require('../utils/getLootFromEnemy')
-const enemyData = require('../utils/enemyData')
-
+import Item from '../models/Item.js'
+import Player from '../models/Player.js'
+import Battlelog from '../models/Battlelog.js'
+import getLootFromEnemy from '../utils/getLootFromEnemy.js'
+import Enemy from '../models/Enemy.js'
+import mongoose from 'mongoose'
 const getRandomIntMinMax = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
@@ -20,8 +18,24 @@ const getBattlelog = async (req, res) => {
     const playerId = req.id
     const battlelog = await Battlelog.findOne({ playerId })
 
+    console.log('battlelog', battlelog)
+
     return res.status(200).json({
       data: battlelog.killedMonsters,
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ message: 'Nie udalo sie pobrac battlelog' })
+  }
+}
+
+const getFullBattlelog = async (req, res) => {
+  try {
+    const playerId = req.id
+    const battlelog = await Battlelog.findOne({ playerId })
+
+    return res.status(200).json({
+      data: battlelog,
     })
   } catch (err) {
     console.log(err)
@@ -41,7 +55,14 @@ const startBattle = async (req, res) => {
     }
 
     const battlelog = await Battlelog.findOne({ playerId })
-
+    if (!battlelog) {
+      return res.status(400).json({
+        message: 'No battlelog found',
+      })
+    }
+    // if (battlelog.pvp.pvpEnemyPlayerName) {
+    //   return res.status(400).json({ message: 'Jesteś w trakcie walki PVP' })
+    // }
     const player = await Player.findOne({ _id: playerId }).populate({
       path: 'inventory',
       populate: {
@@ -80,33 +101,23 @@ const startBattle = async (req, res) => {
       0
     )
 
-    const enemyFound = enemyData.find((el) => el._id === enemyId)
-    if (!enemyFound) {
+    const currentEnemy = await Enemy.findOne({ _id: enemyId })
+    // const enemyFound = enemyData.find((el) => el._id === enemyId)
+    if (!currentEnemy) {
       return res.status(400).json({
         message: 'Brak przeciwnika / no enemy found',
       })
     }
-    if (
-      battlelog.availableBoss !== enemyId &&
-      enemyFound.monsterType === 'boss'
-    ) {
-      return res.status(400).json({
-        message: 'Nie mozna walczyc z bossem',
-      })
-    }
-    if (
-      battlelog.availableBoss === enemyId &&
-      enemyFound.monsterType === 'boss'
-    ) {
-      battlelog.availableBoss = null
-    }
-    console.log('battlelog.availableBosssss', battlelog)
-    console.log('enemyFound.monsterType', enemyFound.monsterType)
 
-    console.log('enemyIdd', enemyId)
-
-    console.log('ENEMYFOUND', enemyFound)
-    const currentEnemy = { ...enemyFound }
+    if (currentEnemy.monsterType === 'boss') {
+      if (battlelog?.availableBoss?.toString() !== enemyId?.toString()) {
+        return res.status(400).json({
+          message: 'Nie mozna walczyc z bossem',
+        })
+      } else {
+        battlelog.availableBoss = null
+      }
+    }
 
     battlelog.current = {
       playerHealthPoints: player.healthPoints,
@@ -134,8 +145,6 @@ const startBattle = async (req, res) => {
     battlelog.enemy = currentEnemy
     await battlelog.save()
 
-    console.log('currentenemy', currentEnemy)
-
     return res.status(200).json({
       data: {
         message: 'Walka rozpoczęta',
@@ -144,6 +153,7 @@ const startBattle = async (req, res) => {
           max_health_points: currentEnemy.max_health_points,
           name: currentEnemy.name,
           image: currentEnemy.image,
+          type: currentEnemy.type,
         },
       },
     })
@@ -164,8 +174,6 @@ const attackEnemy = async (req, res) => {
     const player = await Player.findOne({ _id: playerId })
     const enemy = { ...battlelog.enemy }
 
-    // console.log('BATTLELOG', battlelog.enemy)
-
     // @TODO check if player has this attack type/spell
     const { eqPlayerAttack, eqPlayerDefense, playerLevel, playerAttributes } =
       battlelog.current
@@ -173,9 +181,6 @@ const attackEnemy = async (req, res) => {
     let playerAttackValue
     let playerCritical = null
 
-    console.log('player spells', player.spells)
-
-    console.log('attackty', spell)
     if (spell.spellType === 'normal') {
       playerAttackValue = getRandomIntMinMax(
         eqPlayerAttack +
@@ -206,8 +211,6 @@ const attackEnemy = async (req, res) => {
         battlelog.current.playerManaPoints - 10
       const isEffective = battlelog.enemy.type.includes('bug')
       const isResistant = battlelog.enemy.type.includes('fire' || 'water')
-      // console.log('isEffective', isEffective)
-      // console.log('isResistant', isResistant)
 
       const findSpell = player.spells.find(
         (el) => el.name === 'Ogniste uderzenie'
@@ -251,14 +254,14 @@ const attackEnemy = async (req, res) => {
         battlelog.current.playerManaPoints - 15
       const isEffective = battlelog.enemy.type.includes('water')
       const isResistant = battlelog.enemy.type.includes('electric', 'fire')
-      // console.log('isEffective', isEffective)
-      // console.log('isResistant', isResistant)
 
       const findSpell = player.spells.find((el) => el.name === 'Błyskawica')
 
       let [min, max] = [
         findSpell.spellLevel +
-          (playerAttributes.intelligence + playerAttributes.eqIntelligence / 2),
+          Math.round(
+            playerAttributes.intelligence + playerAttributes.eqIntelligence / 2
+          ),
         findSpell.power +
           findSpell.spellLevel +
           playerAttributes.intelligence +
@@ -274,9 +277,6 @@ const attackEnemy = async (req, res) => {
         max = max * 2
       }
       playerAttackValue = getRandomIntMinMax(min, max)
-      console.log('playerATTACk', playerAttackValue)
-      console.log('min', min)
-      console.log('max', max)
 
       if (!!calculateProbability(playerAttributes.accuracy)) {
         playerCritical = true
@@ -309,6 +309,7 @@ const attackEnemy = async (req, res) => {
       battlelog.current.gainedExp = expEarned
       battlelog.current.gainedGold = goldEarned
 
+      // idk why it helps
       battlelog.markModified('enemy')
       battlelog.markModified('current')
       battlelog.markModified('killedMonsters')
@@ -326,14 +327,11 @@ const attackEnemy = async (req, res) => {
         }
       }
 
-      console.log('battlelog', battlelog.killedMonsters)
-
       const lootedItem = getLootFromEnemy(battlelog.enemy.loot)
 
-      if (lootedItem.id !== 0) {
-        console.log('Loooted item', lootedItem)
-        player.inventory.all.push(lootedItem.id)
-        const item = await Item.findOne({ _id: lootedItem.id })
+      if (lootedItem._id) {
+        player.inventory.all.push(lootedItem._id)
+        const item = await Item.findOne({ _id: lootedItem._id })
         battlelog.current.lootedItem = item
       }
 
@@ -352,8 +350,6 @@ const attackEnemy = async (req, res) => {
         player.manaPoints = player.maxManaPoints
         player.energy = 100
       }
-
-      console.log('battlelog')
 
       await player.save()
 
@@ -426,8 +422,60 @@ const attackEnemy = async (req, res) => {
   }
 }
 
-module.exports = {
+const sendPvpInvite = async (req, res) => {
+  const { invitedPlayerName } = req.body
+  const email = req.email
+
+  const player = await Player.findOne({ email })
+  const playerInvited = await Player.findOne({ playerName: invitedPlayerName })
+
+  const socketsMap = io.sockets.sockets
+  const playerSocketIdToEmit = getSocketIdForPlayer(playerInvited, socketsMap)
+
+  // if player is online
+  if (playerSocketIdToEmit) {
+    io.to(playerSocketIdToEmit).emit(
+      'invite_pvp',
+      `Gracz ${player.playerName} wyzywa Cię do walki`
+    )
+  }
+}
+
+const getEnemyPlayerData = async (req, res) => {
+  try {
+    const id = req.id
+
+    // console.log('req socket', req.socket)
+
+    const battlelog = await Battlelog.findOne({ playerId: id }).populate({
+      path: 'pvp.pvpEnemyPlayerName',
+      select: '-password -email -friends -notifications',
+    })
+
+    const player = await Player.findOne({ _id: id }).select(
+      '-password -email -friends -notifications'
+    )
+
+    battlelog.pvp.pvpEnemyData = { ...battlelog.pvp.pvpEnemyPlayerName }
+    battlelog.pvp.current = { ...player }
+    battlelog.markModified('pvpEnemyData')
+    await battlelog.save()
+
+    // const player = await Player.findOne({ email })
+
+    return res.status(200).json({
+      data: battlelog.pvp,
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ message: 'Nie udalo sie pobrac danych' })
+  }
+}
+
+export {
   getBattlelog,
+  getFullBattlelog,
   startBattle,
   attackEnemy,
+  getEnemyPlayerData,
 }

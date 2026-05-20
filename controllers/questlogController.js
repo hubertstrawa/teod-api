@@ -1,7 +1,6 @@
-const Item = require('../models/Item')
-const Player = require('../models/Player')
-const Questlog = require('../models/Questlog')
-const Quest = require('../models/Quest')
+import Player from '../models/Player.js'
+import Questlog from '../models/Questlog.js'
+import Quest from '../models/Quest.js'
 
 // const updateMe = async (req, res) => {
 //   try {
@@ -27,9 +26,6 @@ const getPlayerQuestlog = async (req, res) => {
       },
     })
 
-    console.log('playerID', playerId)
-    console.log('questlog', questlog)
-
     return res.status(200).json({ data: questlog })
   } catch (err) {
     console.log(err)
@@ -41,7 +37,6 @@ const startQuest = async (req, res) => {
   try {
     const { questId } = req.body
 
-    console.log('=================== quetID', req.body)
     const playerId = req.id
 
     const questlog = await Questlog.findOne({ playerId })
@@ -54,9 +49,9 @@ const startQuest = async (req, res) => {
     if (hasQuest !== -1) {
       return res
         .status(400)
-        .json({ message: 'Nie udalo sie dodac questa (jest juz dodany)' })
+        .json({ message: 'Nie udalo sie dodac questa (jest juz wykonany)' })
     }
-    // if (questlog.activeQuests.)
+
     questlog.activeQuests.push({ _id: questId })
     await questlog.save()
     return res.status(200).json({ message: 'Rozpoczęto nowy quest' })
@@ -75,26 +70,23 @@ const hasRequiredItems = (inventory, requiredItems) => {
     }
   }
 
-  console.log('=== ITEM COUNTS', itemCounts)
-  console.log('==== ITEM inventory', inventory)
-  console.log('==== ITEM requiredItems', requiredItems)
-
   // Check that inventory has enough of each required item
   // requiredItems.filter((i) => i === item).length
-  console.log(
-    '===== TEST',
-    requiredItems.filter((i) => i.toString() === '63e96737ecbb4c981ca98882')
-      .length
-  )
+  // console.log(
+  //   '===== TEST',
+  //   requiredItems.filter((i) => i.toString() === '63e96737ecbb4c981ca98882')
+  //     .length
+  // )
+
   for (const itemObj of requiredItems) {
     const item = itemObj.toString()
-    console.log('ooooo ITEM', item)
-    console.log('ooooo requiredItems', requiredItems)
-    console.log('ooooo itemCounts[item]', itemCounts[item])
-    console.log(
-      'ooooo requiredItems.filter((i) => i.toString() === item).length',
-      requiredItems.filter((i) => i.toString() === item).length
-    )
+    // console.log('ooooo ITEM', item)
+    // console.log('ooooo requiredItems', requiredItems)
+    // console.log('ooooo itemCounts[item]', itemCounts[item])
+    // console.log(
+    //   'ooooo requiredItems.filter((i) => i.toString() === item).length',
+    //   requiredItems.filter((i) => i.toString() === item).length
+    // )
 
     if (
       !(item in itemCounts) ||
@@ -106,8 +98,6 @@ const hasRequiredItems = (inventory, requiredItems) => {
       return true
     }
   }
-
-  // return true
 }
 
 const finishQuest = async (req, res) => {
@@ -144,7 +134,8 @@ const finishQuest = async (req, res) => {
 
     console.log('BEFORE player.inventory.all', player.inventory.all)
 
-    for (requiredItem of quest.requiredItems) {
+    for (const requiredItem of quest.requiredItems) {
+      console.log('player.inventory.all', player.inventory.all)
       const index = player.inventory.all.findIndex(
         (el) => el.toString() === requiredItem.toString()
       )
@@ -160,6 +151,12 @@ const finishQuest = async (req, res) => {
       player.experience = player.experience + quest.rewardExp
     }
 
+    if (quest.rewardItems.length) {
+      quest.rewardItems.forEach((item, i) => {
+        player.inventory.all.push(item)
+      })
+    }
+
     const newActiveQuest = questlog.activeQuests.filter(
       (aq) => aq._id.toString() !== questId
     )
@@ -172,10 +169,10 @@ const finishQuest = async (req, res) => {
     await questlog.save()
     await player.save()
 
-    return res.status(200).json({ message: 'Zakonczono quest' })
+    return res.status(200).json({ message: 'Zakończono zadanie' })
   } catch (err) {
     console.log(err)
-    return res.status(400).json({ message: 'Nie udalo sie zakonczyc zadania' })
+    return res.status(400).json({ message: 'Nie udało się zakończyć zadania' })
   }
 }
 
@@ -188,10 +185,4 @@ const finishQuest = async (req, res) => {
 //   }
 // }
 
-module.exports = {
-  getPlayerQuestlog,
-  startQuest,
-  finishQuest,
-  // getPlayersHighscores,
-  // updateMe,
-}
+export { getPlayerQuestlog, startQuest, finishQuest }

@@ -111,4 +111,4 @@ const enemyData = [
   },
 ]
 
-module.exports = enemyData
+export default enemyData

@@ -1,10 +1,9 @@
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const Item = require('../models/Item')
-const Player = require('../models/Player')
-const Questlog = require('../models/Questlog')
-const Tasklog = require('../models/Tasklog')
-const Battlelog = require('../models/Battlelog')
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import Player from '../models/Player.js'
+import Tasklog from '../models/Tasklog.js'
+import Battlelog from '../models/Battlelog.js'
+import Questlog from '../models/Questlog.js'
 
 const signup = async (req, res) => {
   try {
@@ -44,14 +43,30 @@ const signup = async (req, res) => {
     }
 
     const player = await Player.create(playerObject)
-    await Questlog.create({ playerId: player._id })
-    await Battlelog.create({ playerId: player._id })
-    await Tasklog.create({ playerId: player._id })
 
-    player.password = undefined
+    await Promise.all([
+      Questlog.create({ playerId: player._id }),
+      Battlelog.create({ playerId: player._id }),
+      Tasklog.create({ playerId: player._id }),
+    ])
+
+    player.notifications = [
+      {
+        type: 'message',
+        sender: '63e959b8588eac38851bd2ea',
+        data: 'Witaj w Teod! Gdybyś znalazł/a bugi, daj proszę znać: hubertstrawa@gmail.com',
+        isRead: false,
+      },
+    ]
+    player.friends = {
+      pending: [],
+      list: [],
+    }
+
+    await player.save()
 
     return res.status(200).json({
-      message: 'Konto załozone pomyślnie! Mozesz się teraz zalogować',
+      message: 'Konto założone pomyślnie! Możesz się teraz zalogować',
     })
   } catch (err) {
     console.error(err)
@@ -65,7 +80,6 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
-    console.log('REQ BODY', req.body)
     if (!email || !password) {
       return res.status(400).json({ message: 'Podaj email i hasło' })
     }
@@ -78,8 +92,6 @@ const login = async (req, res) => {
     if (!newUser) {
       return res.status(400).json({ message: 'Nie ma takiego gracza' })
     }
-
-    console.log('NEWUSER', newUser)
 
     const passwordMatch = await bcrypt.compare(password, newUser.password)
 
@@ -126,10 +138,7 @@ const login = async (req, res) => {
 const refresh = async (req, res) => {
   try {
     const cookies = req.cookies
-    console.log('req', req)
 
-    console.log('req.cookies', req.cookies)
-    console.log(cookies)
     if (!cookies?.jwt)
       return res.status(401).json({ message: 'Unauthorized (refresh token)' })
 
@@ -139,15 +148,10 @@ const refresh = async (req, res) => {
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET,
       async (err, decoded) => {
-        if (err)
+        if (err) {
           return res.status(401).json({ message: 'Forbidden (refresh token)' })
+        }
 
-        // sql = `SELECT * FROM players WHERE email=?`
-
-        // const query = await pool.query('SELECT * FROM player WHERE email=$1', [
-        //   decoded.email,
-        // ])
-        // const foundUser = query.rows[0]
         const foundUser = await Player.findOne({ email: decoded.email })
 
         if (!foundUser) {
@@ -187,9 +191,10 @@ const logout = (req, res) => {
   res.json({ message: 'Cookie cleared' })
 }
 
-module.exports = {
-  signup,
-  login,
-  refresh,
-  logout,
-}
+// module.exports = {
+//   signup,
+//   login,
+//   refresh,
+//   logout,
+// }
+export { signup, login, refresh, logout }

@@ -106,28 +106,4 @@ const itemsToSell = [
   },
 ]
 
-module.exports = itemsToSell
-
-// name
-// "Topór Poruszenia"
-// description
-// "Wykuty przez kowali pracujących dla plemienia Tainos"
-// image
-// "/items/AXES/AXE 1.png"
-// attack
-// 12
-// minLevel
-// 10
-
-// attributes
-// Object
-// strength
-// 2
-// defense
-// 0
-// state
-// "common"
-// type
-// "weapon"
-// value
-// 2200
+export default itemsToSell

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const jobSchema = new mongoose.Schema({
   jobId: {
@@ -23,4 +23,4 @@ const jobSchema = new mongoose.Schema({
   },
 })
 
-module.exports = jobSchema
+export default jobSchema

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const questLogSchema = new mongoose.Schema({
   playerId: {
@@ -21,4 +21,5 @@ const questLogSchema = new mongoose.Schema({
   },
 })
 
-module.exports = mongoose.model('Questlog', questLogSchema)
+const Questlog = mongoose.model('Questlog', questLogSchema)
+export default Questlog

@@ -1,11 +1,17 @@
-const express = require('express')
+import express from 'express'
+import {
+  getPlayerQuestlog,
+  startQuest,
+  finishQuest,
+} from '../controllers/questlogController.js'
+import verifyJWT from '../middleware/verifyJWT.js'
+
 const router = express.Router()
-const questlogController = require('../controllers/questlogController')
-const verifyJWT = require('../middleware/verifyJWT')
 
 router.use(verifyJWT)
-router.route('/getPlayerQuestlog').get(questlogController.getPlayerQuestlog)
-router.route('/startQuest').post(questlogController.startQuest)
-router.route('/finishQuest').post(questlogController.finishQuest)
+router.route('/getPlayerQuestlog').get(getPlayerQuestlog)
+router.route('/startQuest').post(startQuest)
+router.route('/finishQuest').post(finishQuest)
 
-module.exports = router
+const questlogRoutes = router
+export default questlogRoutes

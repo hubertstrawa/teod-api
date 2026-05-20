@@ -1,17 +1,30 @@
-const express = require('express')
+import express from 'express'
+
+import {
+  getInventory,
+  addToInventory,
+  updateInventory,
+  eatFood,
+  equipItem,
+  unequipItem,
+  getItemSell,
+  buyItem,
+  sellItem,
+} from '../controllers/inventoryController.js'
+import verifyJWT from '../middleware/verifyJWT.js'
+
 const router = express.Router()
-const inventoryController = require('../controllers/inventoryController')
-const verifyJWT = require('../middleware/verifyJWT')
 
 router.use(verifyJWT)
-router.route('/mine').get(inventoryController.getInventory)
-router.route('/addInventory').post(inventoryController.addToInventory)
-router.route('/updateInventory').patch(inventoryController.updateInventory)
-router.route('/eatFood').post(inventoryController.eatFood)
-router.route('/equipItem').post(inventoryController.equipItem)
-router.route('/unequipItem').post(inventoryController.unequipItem)
-router.route('/getItemsSell').get(inventoryController.getItemSell)
-router.route('/buyItem').post(inventoryController.buyItem)
-router.route('/sellItem').post(inventoryController.sellItem)
+router.route('/mine').get(getInventory)
+router.route('/addInventory').post(addToInventory)
+router.route('/updateInventory').patch(updateInventory)
+router.route('/eatFood').post(eatFood)
+router.route('/equipItem').post(equipItem)
+router.route('/unequipItem').post(unequipItem)
+router.route('/getItemsSell').get(getItemSell)
+router.route('/buyItem').post(buyItem)
+router.route('/sellItem').post(sellItem)
 
-module.exports = router
+const inventoryRoutes = router
+export default inventoryRoutes

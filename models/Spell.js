@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const spellSchema = new mongoose.Schema({
   name: {
@@ -30,4 +30,4 @@ const spellSchema = new mongoose.Schema({
   },
 })
 
-module.exports = spellSchema
+export default spellSchema

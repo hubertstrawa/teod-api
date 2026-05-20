@@ -1,7 +1,8 @@
-const mongoose = require('mongoose')
-const spellSchema = require('./Spell')
-const jobSchema = require('./Job')
-
+import mongoose from 'mongoose'
+import spellSchema from './Spell.js'
+import jobSchema from './Job.js'
+import notificationSchema from './Notification.js'
+import friendsSchema from './Friends.js'
 const playerSchema = new mongoose.Schema(
   {
     playerName: {
@@ -73,6 +74,8 @@ const playerSchema = new mongoose.Schema(
     activeJob: {
       type: jobSchema,
     },
+    notifications: [notificationSchema],
+    friends: friendsSchema,
     locations: {
       type: [String],
       default: ['forgotten-forest'],
@@ -187,4 +190,5 @@ const playerSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
-module.exports = mongoose.model('Player', playerSchema)
+const Player = mongoose.model('Player', playerSchema)
+export default Player
